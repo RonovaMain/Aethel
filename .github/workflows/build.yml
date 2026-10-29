@@ -20,6 +20,8 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-34 build-tools;34.0.0'
 
       # Gradle wrapper jar в проекте не нужен: Gradle 8.13 ставится прямо здесь
       - name: Set up Gradle
