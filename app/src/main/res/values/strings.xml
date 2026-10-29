@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Aethel</string>
+    <string name="channel_reminders">Напоминания</string>
+    <string name="channel_reminders_desc">Поручения, события, подписка и энергия</string>
+</resources>
