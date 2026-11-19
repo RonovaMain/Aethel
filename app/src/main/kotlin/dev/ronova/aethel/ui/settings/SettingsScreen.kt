@@ -172,7 +172,7 @@ fun SettingsScreen(
                 GameSwitcher(selected = s.defaultGame, onSelect = { vm.setDefaultGame(it) })
                 Text("Стартовая вкладка", style = MaterialTheme.typography.labelLarge)
                 HorizontalChips {
-                    AppTab.entries.forEach { tab ->
+                    AppTab.entries.filter { it != AppTab.GUIDE }.forEach { tab ->
                         FilterChip(
                             selected = s.startTab == tab,
                             onClick = { vm.setStartTab(tab) },

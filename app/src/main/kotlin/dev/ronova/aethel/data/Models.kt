@@ -85,6 +85,8 @@ enum class AppTab(val title: String) {
     WISHES("Крутки"),
     TASKS("Поручения"),
     EVENTS("События"),
+    /** Руководство; показывается только для Genshin Impact. */
+    GUIDE("Гайд"),
     PROFILE("Профиль"),
 }
 

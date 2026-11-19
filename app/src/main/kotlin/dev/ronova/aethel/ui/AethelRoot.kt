@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Home
@@ -35,7 +36,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.ronova.aethel.data.AethelDb
 import dev.ronova.aethel.data.AppTab
+import dev.ronova.aethel.data.GameId
 import dev.ronova.aethel.ui.events.EventsScreen
+import dev.ronova.aethel.ui.guide.GuideScreen
 import dev.ronova.aethel.ui.home.HomeScreen
 import dev.ronova.aethel.ui.profile.ProfileScreen
 import dev.ronova.aethel.ui.settings.SettingsScreen
@@ -66,6 +69,7 @@ private fun iconFor(tab: AppTab): ImageVector = when (tab) {
     AppTab.WISHES -> Icons.Filled.AutoAwesome
     AppTab.TASKS -> Icons.Filled.CheckCircle
     AppTab.EVENTS -> Icons.Filled.Schedule
+    AppTab.GUIDE -> Icons.AutoMirrored.Filled.MenuBook
     AppTab.PROFILE -> Icons.Filled.Person
 }
 
@@ -75,8 +79,11 @@ private fun MainScaffold(vm: AppViewModel, db: AethelDb) {
     var tabIndex by rememberSaveable { mutableIntStateOf(db.settings.startTab.ordinal) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
-    val tabs = AppTab.entries
-    val tab = tabs[tabIndex.coerceIn(0, tabs.size - 1)]
+    val allTabs = AppTab.entries
+    // Вкладка руководства есть только у Genshin Impact.
+    val tabs = allTabs.filter { it != AppTab.GUIDE || game == GameId.GENSHIN }
+    val selected = allTabs[tabIndex.coerceIn(0, allTabs.size - 1)]
+    val tab = if (selected in tabs) selected else AppTab.HOME
 
     LaunchedEffect(Unit) {
         vm.messages.collect { snackbar.showSnackbar(it) }
@@ -98,7 +105,15 @@ private fun MainScaffold(vm: AppViewModel, db: AethelDb) {
                 )
             } else {
                 TopAppBar(
-                    title = { Text(if (tab == AppTab.HOME) "Aethel" else tab.title) },
+                    title = {
+                        Text(
+                            when (tab) {
+                                AppTab.HOME -> "Aethel"
+                                AppTab.GUIDE -> "Руководство"
+                                else -> tab.title
+                            },
+                        )
+                    },
                     actions = {
                         IconButton(onClick = { showSettings = true }) {
                             Icon(Icons.Filled.Settings, contentDescription = "Настройки")
@@ -116,6 +131,7 @@ private fun MainScaffold(vm: AppViewModel, db: AethelDb) {
                             onClick = { tabIndex = t.ordinal },
                             icon = { Icon(iconFor(t), contentDescription = t.title) },
                             label = { Text(t.title, maxLines = 1) },
+                            alwaysShowLabel = tabs.size <= 5,
                         )
                     }
                 }
@@ -134,6 +150,7 @@ private fun MainScaffold(vm: AppViewModel, db: AethelDb) {
                 AppTab.WISHES -> WishesScreen(vm = vm, db = db, game = game, padding = padding)
                 AppTab.TASKS -> TasksScreen(vm = vm, db = db, game = game, padding = padding)
                 AppTab.EVENTS -> EventsScreen(vm = vm, db = db, game = game, padding = padding)
+                AppTab.GUIDE -> GuideScreen(padding = padding)
                 AppTab.PROFILE -> ProfileScreen(
                     vm = vm, db = db, padding = padding,
                     onOpenSettings = { showSettings = true },
