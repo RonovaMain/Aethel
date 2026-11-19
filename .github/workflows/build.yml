@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Signed APK
 
 on:
   push:
@@ -23,19 +23,27 @@ jobs:
         with:
           packages: 'platforms;android-34 build-tools;34.0.0'
 
-      # Gradle wrapper jar в проекте не нужен: Gradle 8.13 ставится прямо здесь
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.13"
 
-      # Release без signingConfig: на выходе чистый неподписанный APK
       - name: Build unsigned release APK
         run: gradle assembleRelease --stacktrace
 
-      - name: Upload APK
+      - name: Sign Release APK
+        id: sign_app
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Upload Signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: Aethel-unsigned-apk
-          path: app/build/outputs/apk/release/*.apk
+          name: Aethel-signed-apk
+          path: ${{ steps.sign_app.outputs.signedReleaseFile }}
           if-no-files-found: error
